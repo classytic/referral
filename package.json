@@ -1,0 +1,78 @@
+{
+  "name": "@classytic/referral",
+  "version": "0.1.0",
+  "description": "Referral ATTRIBUTION engine — shareable codes, who-referred-whom, conversion tracking, dedupe + self-referral guard. Single responsibility: it answers 'who drove this sale', NOT money (that's @classytic/revenue) or points (that's @classytic/loyalty). Powered by @classytic/mongokit.",
+  "author": "Classytic",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./events": {
+      "types": "./dist/events/event-catalog.d.mts",
+      "default": "./dist/events/event-catalog.mjs"
+    },
+    "./schemas/*": {
+      "types": "./dist/schemas/*.d.mts",
+      "default": "./dist/schemas/*.mjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --project unit --project integration",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:watch": "vitest --project unit --project integration",
+    "test:all": "vitest run",
+    "prepublishOnly": "npm run typecheck && npm run build",
+    "push": "classytic-push"
+  },
+  "peerDependencies": {
+    "@classytic/mongokit": ">=3.16.0",
+    "@classytic/primitives": ">=0.7.1",
+    "@classytic/repo-core": ">=0.6.0",
+    "mongoose": ">=9.4.1",
+    "zod": ">=4.0.0"
+  },
+  "devDependencies": {
+    "@classytic/dev-tools": "^0.2.0",
+    "@classytic/mongokit": "^3.16.1",
+    "@classytic/primitives": "^0.7.2",
+    "@classytic/repo-core": "^0.6.0",
+    "@types/node": "^22.19.21",
+    "@vitest/coverage-v8": "^4.1.9",
+    "mongodb-memory-server": "^11.2.0",
+    "mongoose": "^9.4.1",
+    "tsdown": "^0.22.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9",
+    "zod": "^4.3.6"
+  },
+  "keywords": [
+    "referral",
+    "affiliate",
+    "attribution",
+    "refer-a-friend",
+    "invite",
+    "conversion",
+    "mongokit",
+    "classytic"
+  ]
+}
