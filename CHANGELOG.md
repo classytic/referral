@@ -1,6 +1,16 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 — 2026-07-11
+
+### Fixed (behavioral) — 2026-07-05 addendum
+
+- **Silent event drop under host sessions (§P8.1).** `emitDomainEvent`
+  returned early under `ctx.session` — correct with an outbox (relay-only),
+  but with NO outbox the event vanished entirely. That shape now throws the
+  new `UnmanagedSessionError` (`referral.session.unmanaged`) BEFORE any
+  side effect; session + outbox remains legal durable-relay-only mode.
+- **Stack floors raised** — peers `@classytic/mongokit >=3.18.0`,
+  `@classytic/repo-core >=0.7.0`; suite verified against those versions.
 
 Initial release — referral **attribution** engine (single responsibility).
 

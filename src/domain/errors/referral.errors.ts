@@ -17,6 +17,24 @@ export class ReferralError extends Error implements HttpError {
   }
 }
 
+/**
+ * Thrown when a host passes ctx.session (it owns the outer transaction)
+ * but NO outbox is wired: publishing immediately would leak ghost events
+ * on rollback, and the pre-guard behavior silently DROPPED the event.
+ * Wire an OutboxStore — session + outbox is legal durable-relay-only
+ * mode (§P8.1: the row commits with the host tx, the relay delivers).
+ */
+export class UnmanagedSessionError extends ReferralError {
+  constructor() {
+    super(
+      'ctx.session provided but no OutboxStore is wired — events would be lost. ' +
+        'Wire an outbox (durable relay delivers post-commit) or drop the session.',
+      'referral.session.unmanaged',
+      409,
+    );
+  }
+}
+
 export class ReferralCodeNotFoundError extends ReferralError {
   constructor(code: string) {
     super(`Referral code "${code}" not found or inactive`, 'referral.code.not_found', 404);

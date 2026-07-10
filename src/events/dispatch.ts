@@ -17,6 +17,7 @@
 import type { ClientSession } from 'mongoose';
 import type { DomainEvent, EventMeta, EventTransport } from '@classytic/primitives/events';
 import type { OutboxStore } from '@classytic/primitives/outbox';
+import { UnmanagedSessionError } from '../domain/errors/referral.errors.js';
 import type { ReferralContext } from '../domain/ports/common.js';
 import { createEvent } from './helpers.js';
 import type { ReferralEventName } from './event-constants.js';
@@ -36,6 +37,11 @@ export async function emitDomainEvent<T>(
   resourceId: string,
 ): Promise<void> {
   if (!channels.eventTransport && !channels.outbox) return;
+
+  // §P8.1 guard: a host-owned session with NO outbox has no correct
+  // delivery path — the pre-guard behavior silently dropped the event.
+  // Fail fast BEFORE any side effect. Session + outbox is relay-only.
+  if (ctx.session && !channels.outbox) throw new UnmanagedSessionError();
 
   const meta: Partial<EventMeta> = { resource, resourceId, source: 'referral' };
   if (ctx.idempotencyKey !== undefined) meta.idempotencyKey = ctx.idempotencyKey;
