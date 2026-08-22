@@ -173,16 +173,26 @@ export class ReferralRepository extends Repository<ReferralDocument> {
     event: (typeof REFERRAL_EVENTS)[keyof typeof REFERRAL_EVENTS],
     ctx: ReferralContext,
   ): Promise<ReferralDocument> {
-    if (!canReferralTransition(ref.status as ReferralStatus, to)) {
-      throw new InvalidReferralTransitionError(ref.status, to);
-    }
-    const updated = await this.claim(
+    const machine = {
+      name: 'referral',
+      assertTransition: (_id: string, from: string, to2: string) => {
+        if (!canReferralTransition(from as ReferralStatus, to2 as ReferralStatus)) {
+          throw new InvalidReferralTransitionError(from as ReferralStatus, to2 as ReferralStatus);
+        }
+      },
+    };
+    const updated = (await this.applyTransition(
       String(ref._id),
-      { field: 'status', from: ref.status, to },
-      { $set: patch, $inc: { version: 1 } },
-      repoOptionsFromCtx(ctx),
-    );
-    if (!updated) throw new InvalidReferralTransitionError(ref.status, to);
+      machine,
+      { from: ref.status, to, set: patch, inc: { version: 1 }, history: false },
+      repoOptionsFromCtx(ctx) as never,
+    ).catch((err: unknown) => {
+      const code = (err as { code?: string } | null)?.code;
+      if (code === 'TRANSITION_RACE_LOST' || code === 'TRANSITION_TARGET_MISSING') {
+        throw new InvalidReferralTransitionError(ref.status, to);
+      }
+      throw err;
+    })) as ReferralDocument;
 
     const decidedAt =
       updated.decidedAt instanceof Date ? updated.decidedAt.toISOString() : new Date().toISOString();

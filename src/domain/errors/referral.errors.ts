@@ -82,17 +82,25 @@ export class VersionMismatchError extends ReferralError {
 }
 
 /**
- * The backend does not declare the capabilities the engine needs. Attribution
- * relies on atomic `getOrCreate` (upsert) for idempotent codes + conversions;
- * without it, two concurrent conversions on one source would double-attribute.
- * Fail loud at boot rather than silently mis-attribute in production.
+ * A required capability is missing — raised by `defineReferral.bind` for either of the two
+ * things it verifies:
+ *
+ *  - **the BACKEND's** atomic `getOrCreate` / `upsert`, which is what makes codes + conversions
+ *    idempotent; without it two concurrent conversions on one source double-attribute;
+ *  - **an injected OUTBOX's** `transactionalSave`, without which events persist for mutations
+ *    that later roll back.
+ *
+ * The message no longer asserts the upsert explanation for every case: it described the backend
+ * reason unconditionally, so an outbox failure printed a misleading remedy ("the backend must
+ * support it (mongokit 3.16+)") for a problem that has nothing to do with the backend or its
+ * version. The missing-flag strings carry their own explanation instead.
  */
 export class ReferralCapabilityError extends ReferralError {
   constructor(missing: readonly string[]) {
     super(
-      `[referral] backend missing required capabilities: ${missing.join(', ')}. ` +
-        `Conversions + codes use atomic getOrCreate (upsert) for idempotency; ` +
-        `the backend must support it (mongokit 3.16+ / repo-core 0.6+).`,
+      `[referral] missing required capabilities: ${missing.join(', ')}. ` +
+        `Referral fails loud at bind rather than mis-attributing (or emitting ghost events) ` +
+        `in production.`,
       'referral.engine.missing_capabilities',
       500,
     );

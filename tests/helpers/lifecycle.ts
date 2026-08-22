@@ -1,11 +1,16 @@
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import mongoose, { type Connection } from 'mongoose';
 import { afterAll, afterEach, beforeAll } from 'vitest';
-import { createReferral } from '../../src/engine/create-referral.js';
-import type { ReferralConfig, ReferralEngine } from '../../src/engine/engine-types.js';
+import { defineReferral } from '../../src/engine/define-referral.js';
+import type {
+  ReferralEngine,
+  ReferralRuntime,
+  ReferralShape,
+} from '../../src/engine/engine-types.js';
 
 export function useIntegrationReferral(
-  overrides: Partial<ReferralConfig> = {},
+  shapeOverrides: Partial<ReferralShape> = {},
+  runtimeOverrides: ReferralRuntime = {},
 ): () => ReferralEngine {
   let mongo: MongoMemoryReplSet;
   let connection: Connection;
@@ -15,12 +20,11 @@ export function useIntegrationReferral(
     mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
     await mongoose.connect(mongo.getUri(), { dbName: 'referral-test' });
     connection = mongoose.connection;
-    engine = await createReferral({
-      connection,
+    engine = defineReferral({
       tenant: { fieldType: 'objectId' },
       forceRecreate: true,
-      ...overrides,
-    });
+      ...shapeOverrides,
+    }).bind(connection, runtimeOverrides);
     await Promise.all([
       engine.models.ReferralCode.createIndexes(),
       engine.models.Referral.createIndexes(),
@@ -33,7 +37,7 @@ export function useIntegrationReferral(
   });
 
   afterAll(async () => {
-    await engine?.destroy();
+    await engine?.close();
     await mongoose.disconnect();
     await mongo?.stop();
   });

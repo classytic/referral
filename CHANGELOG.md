@@ -1,5 +1,20 @@
 # Changelog
 
+
+## 0.2.0 - 2026-08-21
+
+### Changed
+
+- **Construction API:** `createReferral()` → `defineReferral(shape).bind(connection, runtime)` (Kernel Construction Standard). Pure describe phase; `.bind()` compiles schemas, wires repositories, runs the capability gate. `engine.dispose()` → `engine.close()`.
+- **License:** relicensed from MIT to the **Classytic Source-Available License** (Community & Commercial). Evaluation/development use remains free; production use requires a commercial license. See `LICENSE`. Versions before 0.2.0 remain under MIT.
+- `InProcessEventBus` is now a thin subclass of `@classytic/primitives/event-infra`'s shared implementation; `MemoryOutboxStore` re-exported from the shared runtime. No public API or wire-envelope change.
+- Status transitions ride `applyTransition()` from mongokit — typed `InvalidReferralTransitionError` preserved, now thrown with accurate race context; version `$inc` uses the `inc` arg.
+- **Peer floors raised:** `@classytic/mongokit >=3.22.0`, `@classytic/repo-core >=0.13.0`, `@classytic/primitives >=0.13.0`.
+
+### Fixed
+
+- `injectTenantField` no longer force-indexes the tenant field: the compound prepend makes the tenant the leading key of every index, so the bare single was a redundant prefix on every insert. A dedicated tenant index is still created when a schema declares no compounds.
+
 ## 0.1.0 — 2026-07-11
 
 ### Fixed (behavioral) — 2026-07-05 addendum

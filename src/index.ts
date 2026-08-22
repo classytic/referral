@@ -9,9 +9,12 @@
  */
 
 // ── Engine ──────────────────────────────────────────────────────────────────
-export { createReferral } from './engine/create-referral.js';
+export { defineReferral } from './engine/define-referral.js';
+export type { ReferralBlueprint } from './engine/define-referral.js';
 export type {
-  ReferralConfig,
+  ReferralShape,
+  ReferralRuntime,
+  ResolvedReferralConfig,
   ReferralEngine,
   ReferralRepositories,
   ReferralTenantOptions,
@@ -30,11 +33,12 @@ export type {
 } from './repositories/referral.repository.js';
 
 // ── Models ──────────────────────────────────────────────────────────────────
-export {
-  createReferralModels,
-  ReferralModelCollisionError,
+export { defineReferralModels } from './models/create-models.js';
+export type {
+  ReferralModelBundle,
+  ReferralModelName,
+  DefineReferralModelsConfig,
 } from './models/create-models.js';
-export type { ReferralModelBundle, ReferralModelName } from './models/create-models.js';
 export type { ReferralCodeDocument } from './models/referral-code.model.js';
 export type { ReferralDocument } from './models/referral.model.js';
 
@@ -68,13 +72,3 @@ export type { ReferralEventName } from './events/event-constants.js';
 export { InProcessReferralBus } from './events/in-process-bus.js';
 export { referralEventDefinitions } from './events/event-catalog.js';
 export type { ReferralEventDefinition } from './events/event-catalog.js';
-
-// ── Outbox (P4 re-export) ─────────────────────────────────────────────────────
-export type {
-  OutboxStore,
-  OutboxWriteOptions,
-  OutboxClaimOptions,
-  OutboxAcknowledgeOptions,
-  OutboxFailOptions,
-} from './events/outbox-store.js';
-export { InvalidOutboxEventError, OutboxOwnershipError } from './events/outbox-store.js';

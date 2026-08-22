@@ -2,7 +2,7 @@ import type { Connection } from 'mongoose';
 import type { MultiTenantOptions, PluginType } from '@classytic/mongokit';
 import type { EventTransport } from '@classytic/primitives/events';
 import type { OutboxStore } from '@classytic/primitives/outbox';
-import type { TenantConfig } from '@classytic/repo-core/tenant';
+import type { ResolvedTenantConfig, TenantConfig } from '@classytic/repo-core/tenant';
 import type { ReferralContext } from '../domain/ports/common.js';
 import type { ReferralModelBundle, ReferralModelName } from '../models/create-models.js';
 import type { ReferralDocument } from '../models/referral.model.js';
@@ -19,23 +19,47 @@ export interface ReferralLogger {
   error(message: string, ...args: unknown[]): void;
 }
 
-export interface ReferralConfig {
-  connection: Connection;
+/**
+ * DESCRIBE-time shape — everything that determines the persistence SHAPE and needs no
+ * connection or I/O to inspect. Nothing here opens a socket or reads a secret.
+ */
+export interface ReferralShape {
+  /** Tenant policy. `false`/omitted = platform-wide; an object configures the tenant field + plugin. */
   tenant?: ReferralTenantOptions | boolean | undefined;
-  eventTransport?: EventTransport | undefined;
-  outbox?: OutboxStore | undefined;
   /** Generated code length (default 8). */
   codeLength?: number | undefined;
+  /** Mongoose auto-index builds. Default leaves the schema default; pass `false` in prod. */
+  autoIndex?: boolean | Partial<Record<ReferralModelName, boolean>> | undefined;
+  /** Collection-name prefix applied to every referral collection. */
+  collectionPrefix?: string | undefined;
+  /** On a model-name collision: default throws; `true` re-registers (test/dev fixtures). */
+  forceRecreate?: boolean | undefined;
+}
+
+/**
+ * BIND-time runtime collaborators — the live connection is the first `bind` arg; these are the
+ * rest. A transport, outbox, logger or extra plugins belong here, not in the shape.
+ */
+export interface ReferralRuntime {
+  eventTransport?: EventTransport | undefined;
+  outbox?: OutboxStore | undefined;
+  logger?: ReferralLogger | undefined;
   repositoryPlugins?:
     | {
         referralCode?: PluginType[] | undefined;
         referral?: PluginType[] | undefined;
       }
     | undefined;
-  autoIndex?: boolean | Partial<Record<ReferralModelName, boolean>> | undefined;
-  collectionPrefix?: string | undefined;
-  forceRecreate?: boolean | undefined;
-  logger?: ReferralLogger | undefined;
+}
+
+/** Resolved configuration exposed on the engine (frozen). */
+export interface ResolvedReferralConfig {
+  connection: Connection;
+  tenant: ResolvedTenantConfig;
+  codeLength: number;
+  autoIndex: boolean | Partial<Record<ReferralModelName, boolean>> | undefined;
+  collectionPrefix: string | undefined;
+  forceRecreate: boolean;
 }
 
 export interface ReferralRepositories {
@@ -59,7 +83,7 @@ export interface ResolvedReferrer {
 }
 
 export interface ReferralEngine {
-  readonly config: Readonly<ReferralConfig>;
+  readonly config: Readonly<ResolvedReferralConfig>;
   readonly models: ReferralModelBundle;
   readonly repositories: ReferralRepositories;
   readonly events: EventTransport;
@@ -77,6 +101,9 @@ export interface ReferralEngine {
    */
   attributeSale(input: AttributeSaleInput, ctx: ReferralContext): Promise<ReferralDocument | null>;
 
+  /** Build/align indexes. Call once per deploy when booted `autoIndex: false`. */
   syncIndexes(): Promise<void>;
-  destroy(): Promise<void>;
+
+  /** Release resources owned by this engine. Idempotent. The kernel-standard lifecycle name. */
+  close(): Promise<void>;
 }
