@@ -42,8 +42,8 @@ export function buildReferralCodeSchema(): Schema<ReferralCodeDocument> {
     { code: 1 },
     {
       unique: true,
-      partialFilterExpression: { deletedAt: null, code: { $type: 'string' } },
-      name: 'referral_unique_code',
+      partialFilterExpression: { deletedAt: null, code: { $gte: '' } },
+      name: 'referral_unique_code_str',
     },
   );
 

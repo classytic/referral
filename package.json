@@ -1,6 +1,6 @@
 {
   "name": "@classytic/referral",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Referral ATTRIBUTION engine — shareable codes, who-referred-whom, conversion tracking, dedupe + self-referral guard. Single responsibility: it answers 'who drove this sale', NOT money (that's @classytic/revenue) or points (that's @classytic/loyalty). Powered by @classytic/mongokit.",
   "author": "Classytic",
   "license": "SEE LICENSE IN LICENSE",
@@ -14,14 +14,17 @@
   },
   "exports": {
     ".": {
+      "@classytic/source": "./src/index.ts",
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
     "./events": {
+      "@classytic/source": "./src/events/event-catalog.ts",
       "types": "./dist/events/event-catalog.d.mts",
       "default": "./dist/events/event-catalog.mjs"
     },
     "./schemas/*": {
+      "@classytic/source": "./src/schemas/*.ts",
       "types": "./dist/schemas/*.d.mts",
       "default": "./dist/schemas/*.mjs"
     }

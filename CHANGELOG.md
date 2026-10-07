@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 0.2.1 — unreleased
+
+### ⚠ Changed — string-key partial indexes are `{ $gte: '' }`, so lookups by key use them
+
+A `{ $type: 'string' }` partial filter is never implied by an equality query, so a plain lookup by the
+key could not use its own index. `$gte: ''` admits exactly the same rows (strings only) and is implied.
+Renamed with a `_str` suffix (Mongo refuses one name with two filters): `code_1_str`.
+**Deploy:** build the new indexes (they coexist with the old), then drop the old ones — be-prod:
+`npm run db:ensure-indexes`, then `npm run db:retire-type-string-indexes -- --apply`.
+
 ## 0.2.0 - 2026-08-21
 
 ### Changed
