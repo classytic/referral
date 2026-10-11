@@ -1,7 +1,11 @@
 # Changelog
 
 
-## 0.2.1 — unreleased
+## 0.2.1 — 2026-10-11
+
+### Changed — peer floors raised to current
+
+`@classytic/mongokit` `>=3.33.0` → **`>=3.41.0`**, `@classytic/primitives` `>=0.23.0` → **`>=0.31.1`**, `@classytic/repo-core` `>=0.24.0` → **`>=0.31.0`**, `mongoose` `>=9.4.1` → **`>=9.11.0`** (mongokit 3.41 requires it). Verified on a fresh install.
 
 ### ⚠ Changed — string-key partial indexes are `{ $gte: '' }`, so lookups by key use them
 
